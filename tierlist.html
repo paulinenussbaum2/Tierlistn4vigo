@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> N4VIGO Tier List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e10;
+      --surface: #1a1a1f;
+      --border: #2e2e38;
+      --text: #f0f0f5;
+      --text-muted: #888;
+      --label-w: 90px;
+      --img-size: 80px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      padding: 32px 20px 80px;
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 6px;
+      /* ✏️ Changez le titre ici */
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: .85rem;
+      margin-bottom: 36px;
+    }
+
+    /* ─── TIER ROWS ─────────────────────────────────────────── */
+    #tier-board {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tier-row {
+      display: flex;
+      min-height: calc(var(--img-size) + 10px);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .tier-label {
+      width: var(--label-w);
+      min-width: var(--label-w);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 1px;
+      cursor: default;
+      user-select: none;
+      transition: filter .2s;
+    }
+
+    .tier-label:hover { filter: brightness(1.15); }
+
+    /* ✏️ Couleurs par tier — modifiez librement */
+    .tier-row[data-tier="S"] .tier-label { background: #ff5757; color: #fff; }
+    .tier-row[data-tier="A"] .tier-label { background: #ff9f43; color: #fff; }
+    .tier-row[data-tier="B"] .tier-label { background: #ffd32a; color: #1a1a1f; }
+    .tier-row[data-tier="C"] .tier-label { background: #0be881; color: #1a1a1f; }
+    .tier-row[data-tier="D"] .tier-label { background: #17c0eb; color: #fff; }
+    .tier-row[data-tier="F"] .tier-label { background: #7f8fa6; color: #fff; }
+
+    .tier-items {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 8px;
+      background: var(--surface);
+      min-height: calc(var(--img-size) + 10px);
+    }
+
+    /* Drop highlight */
+    .tier-items.drag-over {
+      background: rgba(255,255,255,.06);
+      outline: 2px dashed rgba(255,255,255,.25);
+      outline-offset: -2px;
+    }
+
+    /* ─── ITEM CARDS ─────────────────────────────────────────── */
+    .item {
+      width: var(--img-size);
+      height: var(--img-size);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: grab;
+      position: relative;
+      flex-shrink: 0;
+      transition: transform .15s, box-shadow .15s;
+      border: 2px solid transparent;
+    }
+
+    .item:hover {
+      transform: scale(1.07);
+      box-shadow: 0 6px 20px rgba(0,0,0,.5);
+      border-color: rgba(255,255,255,.3);
+      z-index: 2;
+    }
+
+    .item:active { cursor: grabbing; }
+
+    .item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .item-label {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,.65);
+      color: #fff;
+      font-size: .6rem;
+      text-align: center;
+      padding: 2px 3px;
+      line-height: 1.2;
+      backdrop-filter: blur(2px);
+    }
+
+    /* ─── POOL (items non classés) ───────────────────────────── */
+    #pool-section {
+      max-width: 860px;
+      margin: 28px auto 0;
+    }
+
+    #pool-section h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    #pool {
+      min-height: 100px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    #pool.drag-over {
+      background: rgba(255,255,255,.04);
+      outline: 2px dashed rgba(255,255,255,.2);
+      outline-offset: -2px;
+    }
+
+    /* ─── BOUTONS ─────────────────────────────────────────────── */
+    .actions {
+      max-width: 860px;
+      margin: 20px auto 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 9px 20px;
+      border: none;
+      border-radius: 5px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    button:hover { opacity: .85; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    #btn-reset  { background: #2e2e38; color: var(--text); }
+    #btn-export { background: #ff5757; color: #fff; }
+
+    /* ─── TOOLTIP ─────────────────────────────────────────────── */
+    .tooltip {
+      position: fixed;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: #0be881;
+      color: #0e0e10;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: .85rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      z-index: 999;
+    }
+    .tooltip.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ✏️ Changez le titre et le sous-titre -->
+<h1>Tierlist de n4vigo</h1>
+<p class="subtitle">Ton prime du prime </p>
+
+<!-- ─── TIER BOARD ─── -->
+<div id="tier-board">
+  <!-- ✏️ Ajoutez ou supprimez des lignes, changez data-tier pour le label -->
+  <div class="tier-row" data-tier="S"><div class="tier-label">S</div><div class="tier-items" data-zone="S"></div></div>
+  <div class="tier-row" data-tier="A"><div class="tier-label">A</div><div class="tier-items" data-zone="A"></div></div>
+  <div class="tier-row" data-tier="B"><div class="tier-label">B</div><div class="tier-items" data-zone="B"></div></div>
+  <div class="tier-row" data-tier="C"><div class="tier-label">C</div><div class="tier-items" data-zone="C"></div></div>
+  <div class="tier-row" data-tier="D"><div class="tier-label">D</div><div class="tier-items" data-zone="D"></div></div>
+        
+</div>
+
+<!-- ─── POOL ─── -->
+<div id="pool-section">
+  <h2>Ton big starterpack</h2>
+  <div id="pool" data-zone="pool"></div>
+</div>
+
+<!-- ─── ACTIONS ─── -->
+<div class="actions">
+  <button id="btn-reset">↺ Recommencer car j'assume pas </button>
+  <button id="btn-export">📷 Ajouter du fun</button>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<!-- html2canvas pour l'export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+  // ══════════════════════════════════════════════════════════
+  // ✏️  CONFIGUREZ VOS ITEMS ICI
+  //     src  : chemin vers l'image (ex: "images/item1.jpg")
+  //     name : label affiché sous l'image
+  // ══════════════════════════════════════════════════════════
+  const ITEMS = [
+    { id: 1,  src: "image/bissap.png"},
+    { id: 2,  src: "image/bowling.png"},
+    { id: 3,  src: "image/ornoir.png"},
+    { id: 4,  src: "image/veste.png"},
+    { id: 5,  src: "image/churros.png"},
+    { id: 6,  src: "image/frauen.png"},
+    { id: 7,  src: "image/chat.png"},
+    { id: 8,  src: "image/109.png"},
+    { id: 9,  src: "image/joke.png"},
+    { id: 10, src: "image/konbini.png"},
+    { id: 11, src: "image/goat.png"},
+    { id: 12, src: "image/paris.png"},
+    { id: 13, src: "image/thieb.png"},
+    { id: 14, src: "image/ecolevitaux.png"},
+    { id: 15, src: "image/mule.png"},
+    { id: 16, src: "image/karaoke.png"},
+    { id: 17, src: "image/edhardy.png"},
+    { id: 18, src: "image/pg.png"},
+    { id: 19, src: "image/redhot.png"},
+    { id: 20, src: "image/fdv.png"},
+    { id: 21, src: "image/vin.png"},
+    { id: 22, src: "image/taxidriver.png"},
+    { id: 23, src: "image/pants.png"},
+    { id: 24, src: "image/13block.png"},
+    { id: 25, src: "image/fortnite.png"},
+    { id: 26, src: "image/case.png"},
+    { id: 27, src: "image/ipa.png"},
+    { id: 28, src: "image/theodora.png"},
+    { id: 29, src: "image/fl.png"},
+    { id: 30, src: "image/tokyo.png"},
+    { id: 31, src: "image/carti.png"},
+    { id: 32, src: "image/ski.png"},
+     { id: 33, src: "image/oasis.png"},
+      { id: 34, src: "image/mc.png"},
+       { id: 35, src: "image/lba.png"},
+        { id: 36, src: "image/bouchon.png"},
+    { id: 37, src: "image/europapark.png"},
+     { id: 38, src: "image/moi.png"},
+      { id: 39, src: "image/bep.png"},
+       { id: 40, src: "image/red.png"},
+        { id: 38, src: "image/kebab.png"},
+        { id: 32, src: "image/velo.png"},
+
+    
+  ];
+  // ══════════════════════════════════════════════════════════
+
+  let dragEl = null;
+
+  function makeItem(data) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.draggable = true;
+    div.dataset.id = data.id;
+
+    const img = document.createElement('img');
+    img.src  = data.src;
+    img.alt  = data.name;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'item-label';
+    lbl.textContent = data.name;
+
+    div.appendChild(img);
+    div.appendChild(lbl);
+
+    // Double-clic → renommer
+    div.addEventListener('dblclick', () => {
+      const n = prompt('Renommer :', lbl.textContent);
+      if (n !== null && n.trim()) lbl.textContent = n.trim();
+    });
+
+    // Drag events
+    div.addEventListener('dragstart', e => {
+      dragEl = div;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => div.style.opacity = '.3', 0);
+    });
+    div.addEventListener('dragend', () => {
+      dragEl = null;
+      div.style.opacity = '';
+    });
+
+    return div;
+  }
+
+  // Drop zones
+  document.querySelectorAll('[data-zone]').forEach(zone => {
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (dragEl) zone.appendChild(dragEl);
+    });
+  });
+
+  // Init pool
+  const pool = document.getElementById('pool');
+  ITEMS.forEach(item => pool.appendChild(makeItem(item)));
+
+  // Reset
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    document.querySelectorAll('.item').forEach(el => pool.appendChild(el));
+  });
+
+  // Export image
+  document.getElementById('btn-export').addEventListener('click', async () => {
+    const board = document.getElementById('tier-board');
+    const canvas = await html2canvas(board, {
+      backgroundColor: '#0e0e10',
+      scale: 2,
+      useCORS: true
+    });
+    const a = document.createElement('a');
+    a.download = 'tier-list.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    showTip('Image téléchargée !');
+  });
+
+  function showTip(msg) {
+    const t = document.getElementById('tooltip');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>
